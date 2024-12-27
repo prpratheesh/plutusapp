@@ -193,7 +193,7 @@ class _State extends State<TerminalFunctions> with TickerProviderStateMixin{
         "Detail": {
           "BillingRefNo": "TX98765432",
           "PaymentAmount": 5000,
-          "TransactionType": 4502,
+          "TransactionType": 4001,
         },
         "Header": {
           "ApplicationId": "2d1425547b914f6992b52e74069390a0", // Your Application ID
@@ -210,6 +210,35 @@ class _State extends State<TerminalFunctions> with TickerProviderStateMixin{
     } catch (e) {
       addStatusMessage('EXCEPTION TRANSACTION STATUS : $e');
       Logger.log('EXCEPTION TRANSACTION STATUS : $e',level: LogLevel.error);
+    }
+  }
+
+  Future<void> startUpiTransaction() async {
+    addStatusMessage('INITIATING UPI TRANSACTION.');
+    Logger.log('INITIATING UPI TRANSACTION.',level: LogLevel.debug);
+    try {
+      // Prepare the transaction payload
+      payload = {
+        "Detail": {
+          "BillingRefNo": "TX98765432",
+          "PaymentAmount": 5000,
+          "TransactionType": 5120,
+        },
+        "Header": {
+          "ApplicationId": "2d1425547b914f6992b52e74069390a0", // Your Application ID
+          "MethodId": "1001",
+          "UserId": "user1234", // User ID
+          "VersionNo": "1.0",
+        }
+      };
+      final String transactionPayload = jsonEncode(payload);
+      final result = await PlutusSmart.startTransaction(transactionPayload);
+      Logger.log('UPI TRANSACTION STATUS :$result',level: LogLevel.debug);
+      Logger.log(result,level: LogLevel.debug);
+      addStatusMessage(result);
+    } catch (e) {
+      addStatusMessage('UPI EXCEPTION TRANSACTION STATUS : $e');
+      Logger.log('UPI EXCEPTION TRANSACTION STATUS : $e',level: LogLevel.error);
     }
   }
 
@@ -275,6 +304,7 @@ class _State extends State<TerminalFunctions> with TickerProviderStateMixin{
                           'REFUND',
                           'VOID',
                           'SETTLE',
+                          'UPI',
                           'SALE+TIP',
                           'PRINT',
                           'SCAN'
@@ -314,6 +344,7 @@ class _State extends State<TerminalFunctions> with TickerProviderStateMixin{
                             'REFUND',
                             'VOID',
                             'SETTLE',
+                            'UPI',
                             'SALE+TIP',
                             'PRINT',
                             'SCAN'
@@ -492,6 +523,9 @@ class _State extends State<TerminalFunctions> with TickerProviderStateMixin{
                       break;
                     case 'SETTLEMENT':
 
+                      break;
+                    case 'UPI':
+                      startUpiTransaction();
                       break;
                     case 'SALE+TIP':
                       break;
