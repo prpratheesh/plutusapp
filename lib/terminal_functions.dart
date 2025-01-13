@@ -242,6 +242,30 @@ class _State extends State<TerminalFunctions> with TickerProviderStateMixin{
     }
   }
 
+  Future<void> startScanTransaction() async {
+    addStatusMessage('INITIATING SCAN.');
+    Logger.log('INITIATING SCAN.',level: LogLevel.debug);
+    try {
+      // Prepare the transaction payload
+      payload = {
+        "Header": {
+          "ApplicationId": "2d1425547b914f6992b52e74069390a0", // Your Application ID
+          "MethodId": "1007",
+          "UserId": "user1234", // User ID
+          "VersionNo": "1.0",
+        }
+      };
+      final String transactionPayload = jsonEncode(payload);
+      final result = await PlutusSmart.startTransaction(transactionPayload);
+      Logger.log('TRANSACTION STATUS :$result',level: LogLevel.debug);
+      Logger.log(result,level: LogLevel.debug);
+      addStatusMessage(result);
+    } catch (e) {
+      addStatusMessage('EXCEPTION TRANSACTION STATUS : $e');
+      Logger.log('EXCEPTION TRANSACTION STATUS : $e',level: LogLevel.error);
+    }
+  }
+
   Future<void> startPrint() async {
     Logger.log('INITIATING TRANSACTION.',level: LogLevel.debug);
     try {
@@ -508,7 +532,7 @@ class _State extends State<TerminalFunctions> with TickerProviderStateMixin{
             ),
             const SizedBox(height: 5),
             InkWell(
-              onTap: _selectedTransaction == 'SCAN' ? null : () async{
+              onTap: _selectedTransaction == 'SCAN' ? () => startScanTransaction() : () async{
                 if (!_isChecked) {
                   switch (_selectedTransaction) {
                     case 'SALE':
@@ -555,7 +579,7 @@ class _State extends State<TerminalFunctions> with TickerProviderStateMixin{
                       spreadRadius: 2,
                     ),
                   ],
-                  color: _selectedTransaction == 'SCAN' ? Colors.grey : Colors.black ,
+                  color: _selectedTransaction == 'SCAN' ? Colors.blue : Colors.black ,
                   border: Border.all(
                     color: Colors.white, // White color border
                     width: 1, // Border width
