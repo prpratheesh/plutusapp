@@ -68,7 +68,7 @@ class _State extends State<TerminalFunctions> with TickerProviderStateMixin{
       "VersionNo": "1.0",
     }
   };
-  Map<String, dynamic> printData = {
+  Map<String, dynamic>  printData = {
     "Header": {
       "ApplicationId": "2d1425547b914f6992b52e74069390a0", // Replace with your actual App ID
       "UserId": "user1234",
