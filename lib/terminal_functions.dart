@@ -308,6 +308,7 @@ class _State extends State<TerminalFunctions> with TickerProviderStateMixin{
                           'VOID',
                           'SETTLE',
                           'SALE+TIP',
+                          'VALIDATION',
                           'PRINT',
                           'SCAN'
                         ].map((String value) {
@@ -347,6 +348,7 @@ class _State extends State<TerminalFunctions> with TickerProviderStateMixin{
                             'VOID',
                             'SETTLE',
                             'SALE+TIP',
+                            'VALIDATION',
                             'PRINT',
                             'SCAN'
                           ].map((String value) {
@@ -628,6 +630,7 @@ class _State extends State<TerminalFunctions> with TickerProviderStateMixin{
                                 EOT)
                             .toUpperCase();
                         addStatusMessage(hexToAscii(dataElement!));
+                        logger.logSuccess(dataElement.toString());
                         var datapayment = await POSManager.doTransaction(
                             dataElement, TXN_TYPE);
                         addStatusMessage(hexToAscii(datapayment!));
@@ -690,7 +693,7 @@ class _State extends State<TerminalFunctions> with TickerProviderStateMixin{
                             context, 'Enter Transaction Amount');
                       }
                       break;
-                    case 'SETTLEMENT':
+                    case 'SETTLE':
                       TR_TYPE = '6001';
                       addStatusMessage('INITIATING SETTLEMENT TRANSACTION');
                       const dataElement =
@@ -727,24 +730,25 @@ class _State extends State<TerminalFunctions> with TickerProviderStateMixin{
                             context, 'Enter Transaction Amount');
                       }
                       break;
-                    case 'PRINT':
-                      logger.info('INITIATING SAMPLE PRINT');
-                      addStatusMessage('INITIATING SAMPLE PRINT');
-                      SnackBarUtil.showCustomSnackBar(context, 'INITIATING SAMPLE PRINT');
-                      String testDataString = jsonEncode(testData);
-                      var datapayment =
-                          await POSManager.doTransaction(testDataString, 1002);
-                      // logger.logSuccess(datapayment.toString());
-                      if(datapayment!=null){
-                        Map<String, dynamic> jsonData = jsonDecode(datapayment);
-                        int responseCode = jsonData['Response']['ResponseCode'];
-                        handlePrinterStatus(responseCode);
-                        addStatusMessage('PRINT SUCCESS');
-                      }else{
-                        SnackBarUtil.showCustomSnackBar(context, 'PRINT FAILURE');
-                        addStatusMessage('PRINT FAILURE');
-                      }
-                      // addStatusMessage(hexToAscii(datapayment!));
+                    case 'VALIDATION':
+                      TR_TYPE = '7001';
+                      addStatusMessage('INITIATING VALIDATION TRANSACTION');
+                      String DATA_ASCII =
+                          '7001,1030,SALE,100,15489,1099,,,,,E748A37A-B0D0-4EAC-9DD4-9722E544D296,https://plcloudservicesuat.com/api/CloudBasedIntegration/V1/PerformTxnValidation';
+                      DATA = convertToHex(DATA_ASCII);
+                      String payloadLength = (decimalToHexWithLeadingZeros(
+                          DATA_ASCII.length, 4));
+                      DATA_LENGTH = payloadLength.toString().toUpperCase();
+                      final dataElement = (IDENTIFICATIN_NO +
+                          FUNCTION_CODE +
+                          DATA_LENGTH +
+                          DATA +
+                          EOT)
+                          .toUpperCase();
+                      var datapayment = await POSManager.doTransaction(
+                          dataElement, TXN_TYPE);
+                      addStatusMessage(hexToAscii(dataElement!));
+                      logger.logSuccess(datapayment.toString());
                       break;
                     default:
                       TR_TYPE = '';
@@ -1222,7 +1226,6 @@ class _State extends State<TerminalFunctions> with TickerProviderStateMixin{
     return buffer.toString();
   }
 
-// Function to read image file and convert to hex string
   Future<String> imageToHexString(String imagePath) async {
     // Load the image file as bytes
     final file = File(imagePath);
@@ -1243,7 +1246,6 @@ class _State extends State<TerminalFunctions> with TickerProviderStateMixin{
     }
   }
 
-// Convert bytes to hex string
   String bytesToHex(Uint8List bytes) {
     final buffer = StringBuffer();
     for (var byte in bytes) {
